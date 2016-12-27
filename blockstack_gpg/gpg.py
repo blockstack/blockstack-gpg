@@ -311,7 +311,7 @@ def gpg_list_profile_keys( name, proxy=None, wallet_keys=None, config_dir=None )
     if proxy is None:
         proxy = blockstack_client.get_default_proxy( config_path=client_config_path )
 
-    accounts = list_accounts( name, proxy=proxy, wallet_keys=wallet_keys )
+    accounts = list_accounts( name, proxy=proxy )
     if 'error' in accounts:
         raise Exception("Blockstack error: %s" % accounts['error'] )
 
@@ -422,9 +422,14 @@ def gpg_fetch_key( key_url, key_id=None, config_dir=None ):
         try:
             f = opener.open( key_url )
             key_data_str = f.read()
-            key_data_dict = json.loads(key_data_str)
-            assert len(key_data_dict) == 1, "Got multiple keys"
-            key_data = str(key_data_dict[key_data_dict.keys()[0]])
+            # key_data_dict = json.loads(key_data_str)
+            # assert len(key_data_dict) == 1, "Got multiple keys"
+            # key_data = str(key_data_dict[key_data_dict.keys()[0]])
+            BEGIN_BLOCK = '-----BEGIN PGP PUBLIC KEY BLOCK-----'
+            END_BLOCK	= '-----END PGP PUBLIC KEY BLOCK-----'
+            key_data = key_data_str.split(BEGIN_BLOCK)[1].split(END_BLOCK)[0]
+            key_data = BEGIN_BLOCK + '\n' + key_data + '\n' + END_BLOCK
+            return key_data
             f.close()
         except Exception, e:
             log.exception(e)
@@ -632,7 +637,7 @@ def gpg_profile_get_key( blockchain_id, keyname, key_id=None, proxy=None, wallet
     if gpghome is None:
         gpghome = get_default_gpg_home()
 
-    accounts = blockstack_client.list_accounts( blockchain_id, proxy=proxy, wallet_keys=wallet_keys )
+    accounts = blockstack_client.list_accounts( blockchain_id, proxy=proxy )
     if 'error' in accounts:
         return accounts
 
