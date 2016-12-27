@@ -422,9 +422,14 @@ def gpg_fetch_key( key_url, key_id=None, config_dir=None ):
         try:
             f = opener.open( key_url )
             key_data_str = f.read()
-            key_data_dict = json.loads(key_data_str)
-            assert len(key_data_dict) == 1, "Got multiple keys"
-            key_data = str(key_data_dict[key_data_dict.keys()[0]])
+            # key_data_dict = json.loads(key_data_str)
+            # assert len(key_data_dict) == 1, "Got multiple keys"
+            # key_data = str(key_data_dict[key_data_dict.keys()[0]])
+            BEGIN_BLOCK = '-----BEGIN PGP PUBLIC KEY BLOCK-----'
+            END_BLOCK	= '-----END PGP PUBLIC KEY BLOCK-----'
+            key_data = key_data_str.split(BEGIN_BLOCK)[1].split(END_BLOCK)[0]
+            key_data = BEGIN_BLOCK + '\n' + key_data + '\n' + END_BLOCK
+            return key_data
             f.close()
         except Exception, e:
             log.exception(e)
